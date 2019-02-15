@@ -12,6 +12,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import arabiannight.tistory.com.R;
 import arabiannight.tistory.com.adapter.CustomAdapter;
 import arabiannight.tistory.com.conf.Constants;
@@ -19,37 +20,41 @@ import arabiannight.tistory.com.data.InfoClass;
 import arabiannight.tistory.com.util.DLog;
 
 public class TestDataBaseActivity extends Activity {
-	
-	private static final String TAG = "TestDataBaseActivity";
-	private DbOpenHelper_button mDbOpenHelper;
-	private Cursor mCursor;
-	private InfoClass_btn_data mInfoClass;
-	private ArrayList<InfoClass_btn_data> mInfoArray;
-	private CustomAdapter mAdapter;
-	
+
+    private static final String TAG = "TestDataBaseActivity";
+    private DbOpenHelper_button mDbOpenHelper;
+    private Cursor mCursor;
+    private InfoClass_btn_data mInfoClass;
+    private ArrayList<InfoClass_btn_data> mInfoArray;
+    private CustomAdapter mAdapter;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
+
         setLayout();
-        
+
         // DB Create and Open
-        mDbOpenHelper = new DbOpenHelper_button(this,"test");
+        mDbOpenHelper = new DbOpenHelper_button(this, "test");
         mDbOpenHelper.open();
+        mDbOpenHelper.insertColumn_button_data("처음 버튼", 100, 200, "1");
 
-        if(!mDbOpenHelper.is_same_btn_existed("처음 버튼")){
-			mDbOpenHelper.insertColumn_button_data("처음 버튼",100 , 200, "1");
-			Toast.makeText(getApplicationContext(), "넣음", Toast.LENGTH_SHORT).show();
-		}else{
-			Toast.makeText(getApplicationContext(), "안넣음", Toast.LENGTH_SHORT).show();
+        if (mDbOpenHelper.is_same_btn_existed("처음 버튼")) {
+//			mDbOpenHelper.insertColumn_button_data("처음 버튼",100 , 200, "1");
+//			mDbOpenHelper.updateColumn_btn_data(1, "c처처음버튼", 200, 100, "2");
+            mDbOpenHelper.deleteColumn_btn_data(1);
 
-		}
+            Toast.makeText(getApplicationContext(), "넣음", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "안넣음", Toast.LENGTH_SHORT).show();
+
+        }
 
 
         startManagingCursor(mCursor);
-        
-        
+
+
         mInfoArray = new ArrayList<InfoClass_btn_data>();
 
         doWhileCursorToArray();
@@ -66,122 +71,116 @@ public class TestDataBaseActivity extends Activity {
 //        mListView.setOnItemLongClickListener(longClickListener);
 
 
-
-
-
-
-
     }// oncreate 끝
-    
+
     @Override
     protected void onDestroy() {
-    	mDbOpenHelper.close();
-    	super.onDestroy();
+        mDbOpenHelper.close();
+        super.onDestroy();
     }
-    
-    
+
+
     /**
      * ListView의 Item을 롱클릭 할때 호출 ( 선택한 아이템의 DB 컬럼과 Data를 삭제 한다. )
      */
     private OnItemLongClickListener longClickListener = new OnItemLongClickListener() {
-		@Override
-		public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-				int position, long arg3) {
-			
-			DLog.e(TAG, "position = " + position);
-			
-			boolean result = mDbOpenHelper.deleteColumn(position + 1);
-			DLog.e(TAG, "result = " + result);
-			
-			if(result){
-				mInfoArray.remove(position);
+        @Override
+        public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                       int position, long arg3) {
+
+            DLog.e(TAG, "position = " + position);
+
+            boolean result = mDbOpenHelper.deleteColumn(position + 1);
+            DLog.e(TAG, "result = " + result);
+
+            if (result) {
+                mInfoArray.remove(position);
 //				mAdapter.setArrayList(mInfoArray);
 //				mAdapter.notifyDataSetChanged();
-			}else {
-				Toast.makeText(getApplicationContext(), "INDEX를 확인해 주세요.", 
-						Toast.LENGTH_LONG).show();
-			}
-			
-			return false;
-		}
-	};
-	
-	
-	/**
-	 * DB에서 받아온 값을 ArrayList에 Add
-	 */
-	private void doWhileCursorToArray(){
-		
-		mCursor = null;
-		mCursor = mDbOpenHelper.getAllColumns_btn_data();
-		DLog.e(TAG, "COUNT = " + mCursor.getCount());
-		
-		while (mCursor.moveToNext()) {
+            } else {
+                Toast.makeText(getApplicationContext(), "INDEX를 확인해 주세요.",
+                        Toast.LENGTH_LONG).show();
+            }
 
-			mInfoClass = new InfoClass_btn_data(
-
-					mCursor.getInt(mCursor.getColumnIndex("_id")),
-					mCursor.getString(mCursor.getColumnIndex("btn_name")),
-					mCursor.getInt(mCursor.getColumnIndex("x")),
-					mCursor.getInt(mCursor.getColumnIndex("y")),
-					mCursor.getString(mCursor.getColumnIndex("coding"))
+            return false;
+        }
+    };
 
 
+    /**
+     * DB에서 받아온 값을 ArrayList에 Add
+     */
+    private void doWhileCursorToArray() {
 
-			);
-			Log.i("class", mInfoClass +"");
-			mInfoArray.add(mInfoClass);
+        mCursor = null;
+        mCursor = mDbOpenHelper.getAllColumns_btn_data();
+        DLog.e(TAG, "COUNT = " + mCursor.getCount());
 
-		}
+        while (mCursor.moveToNext()) {
 
-		mCursor.close();
-	}
-    
-    
-	/**
-	 * OnClick Button
-	 * @param v
-	 */
-    public void onClick(View v){
-    	switch (v.getId()) {
-		case R.id.btn_add:
-			mDbOpenHelper.insertColumn
-					(
-					mEditTexts[Constants.NAME].getText().toString().trim(),
-					mEditTexts[Constants.CONTACT].getText().toString().trim(),
-					mEditTexts[Constants.EMAIL].getText().toString().trim()
-					);
-			
-			mInfoArray.clear();
-			
-			doWhileCursorToArray();
-			
+            mInfoClass = new InfoClass_btn_data(
+
+                    mCursor.getInt(mCursor.getColumnIndex("_id")),
+                    mCursor.getString(mCursor.getColumnIndex("btn_name")),
+                    mCursor.getInt(mCursor.getColumnIndex("x")),
+                    mCursor.getInt(mCursor.getColumnIndex("y")),
+                    mCursor.getString(mCursor.getColumnIndex("coding"))
+
+            );
+            Log.i("class", mInfoClass + "");
+            mInfoArray.add(mInfoClass);
+
+        }
+
+        mCursor.close();
+    }
+
+
+    /**
+     * OnClick Button
+     *
+     * @param v
+     */
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_add:
+                mDbOpenHelper.insertColumn
+                        (
+                                mEditTexts[Constants.NAME].getText().toString().trim(),
+                                mEditTexts[Constants.CONTACT].getText().toString().trim(),
+                                mEditTexts[Constants.EMAIL].getText().toString().trim()
+                        );
+
+                mInfoArray.clear();
+
+                doWhileCursorToArray();
+
 //			mAdapter.setArrayList(mInfoArray);
 //			mAdapter.notifyDataSetChanged();
-			
-			mCursor.close();
-			
-			break;
 
-		default:
-			break;
-		}
+                mCursor.close();
+
+                break;
+
+            default:
+                break;
+        }
     }
-    
+
     /*
      * Layout
      */
     private EditText[] mEditTexts;
     private ListView mListView;
-    
-    private void setLayout(){
-    	mEditTexts = new EditText[]{
-    			(EditText)findViewById(R.id.et_name),
-    			(EditText)findViewById(R.id.et_contact),
-    			(EditText)findViewById(R.id.et_email)
-    	};
-    	
-    	mListView = (ListView) findViewById(R.id.lv_list);
+
+    private void setLayout() {
+        mEditTexts = new EditText[]{
+                (EditText) findViewById(R.id.et_name),
+                (EditText) findViewById(R.id.et_contact),
+                (EditText) findViewById(R.id.et_email)
+        };
+
+        mListView = (ListView) findViewById(R.id.lv_list);
     }
 }
 
